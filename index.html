@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MovieLens: Your Ultimate Movie & Web Series Guide</title>
+    <title>MovieLens: Your Automated Movie & Web Series Guide</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -24,242 +24,177 @@
 
         <header class="text-center mb-10">
             <h1 class="text-5xl font-extrabold text-white leading-tight mb-2">MovieLens</h1>
-            <p class="text-xl text-slate-400">Your ultimate guide to the latest and greatest films & web series.</p>
+            <p class="text-xl text-slate-400">Live, automatically updating guide to the world's trending films & TV shows.</p>
         </header>
 
         <section class="mb-12 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
             <div class="search-box relative">
-                <input type="text" id="searchInput" placeholder="Search for a movie, web series, actor, or genre..." class="w-full pl-6 pr-4 py-4 rounded-lg bg-slate-800 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700">
+                <input type="text" id="searchInput" placeholder="Search for any movie or web series globally..." class="w-full pl-6 pr-4 py-4 rounded-lg bg-slate-800 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700">
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
                 <select id="typeFilter" class="w-full p-3 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700">
-                    <option value="">All Formats (Movies & Series)</option>
-                    <option value="Movie">Movies Only</option>
-                    <option value="Web Series">Web Series Only</option>
+                    <option value="all">All Formats (Trending)</option>
+                    <option value="movie">Movies Only</option>
+                    <option value="tv">Web Series Only</option>
                 </select>
 
-                <select id="genreFilter" class="w-full p-3 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700">
-                    <option value="">All Genres</option>
-                    <option value="Action">Action</option>
-                    <option value="Comedy">Comedy</option>
-                    <option value="Thriller">Thriller</option>
-                    <option value="Drama">Drama</option>
-                    <option value="Romance">Romance</option>
-                    <option value="Sci-Fi">Sci-Fi</option>
-                    <option value="Crime">Crime</option>
-                    <option value="Biography">Biography</option>
+                <select id="sortFilter" class="w-full p-3 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700">
+                    <option value="popularity.desc">Popularity (High to Low)</option>
+                    <option value="vote_average.desc">Rating (Top Rated)</option>
+                    <option value="primary_release_date.desc">Release Date (Newest First)</option>
                 </select>
 
-                <select id="ratingFilter" class="w-full p-3 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700">
-                    <option value="0">All Ratings</option>
-                    <option value="5">5 Stars</option>
-                    <option value="4">4 Stars & Up</option>
-                    <option value="3">3 Stars & Up</option>
-                    <option value="2">2 Stars & Up</option>
-                </select>
-
-                <select id="adultRatingFilter" class="w-full p-3 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700">
-                    <option value="">All Maturity Ratings</option>
-                    <option value="U">U / PG</option>
-                    <option value="U/A">U/A / PG-13</option>
-                    <option value="A">A / R</option>
+                <select id="regionFilter" class="w-full p-3 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700">
+                    <option value="IN">Indian Releases</option>
+                    <option value="US">Hollywood / Global Releases</option>
                 </select>
             </div>
         </section>
 
+        <div id="loading" class="text-center text-indigo-400 text-xl font-semibold my-12 hidden">
+            Fetching latest updates from database...
+        </div>
+
         <section id="movieList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             </section>
         
-        <p id="noResults" class="text-center text-slate-400 text-lg mt-12 hidden">No movies or web series match your search criteria.</p>
+        <p id="noResults" class="text-center text-slate-400 text-lg mt-12 hidden">No titles found. Try adjusting your search query.</p>
 
     </div>
 
     <script>
-        // Updated mid-2026 database featuring fresh content formats
-        const contentDatabase = [
-            {
-                title: "Gullak (Season 5)",
-                type: "Web Series",
-                banner: "https://images.slivcdn.com/landscape_thumb/Gullak_S5_Landscape_Thumb.jpg", 
-                adultRating: "U/A",
-                stars: 4.5,
-                feedback: "The Mishra family returns with timeless middle-class relatability. This season delicately balances scaling growth with their core baseline humor and heartfelt warmth.",
-                ottPlatform: "SonyLIV",
-                boxOffice: "N/A (Streaming Hit)",
-                casting: "Jameel Khan, Geetanjali Kulkarni, Harsh Mayar, Vaibhav Raj Gupta",
-                details: "Comedy, Drama"
-            },
-            {
-                title: "Brown",
-                type: "Web Series",
-                banner: "https://images.zee5.com/images/Karisma_Kapoor_Brown_Banner.jpg",
-                adultRating: "A",
-                stars: 4,
-                feedback: "Karisma Kapoor delivers a tour de force performance as Rita Brown—a broken, alcoholic detective tracking a brutal murder mystery hidden beneath Kolkata's social elite.",
-                ottPlatform: "ZEE5",
-                boxOffice: "N/A",
-                casting: "Karisma Kapoor, Helen, Soni Razdan, Surya Sharma",
-                details: "Crime, Thriller, Drama"
-            },
-            {
-                title: "Made In India: A Titan Story",
-                type: "Web Series",
-                banner: "https://images.amazon.com/images/Titan_Story_Banner.jpg",
-                adultRating: "U",
-                stars: 4,
-                feedback: "An expertly structured corporate biographical drama charting Xerxes Desai's vision to construct India's proudest watch brand. Naseeruddin Shah is stellar as JRD Tata.",
-                ottPlatform: "Amazon MX Player / Prime Video",
-                boxOffice: "N/A",
-                casting: "Jim Sarbh, Naseeruddin Shah, Vaibhav Tatwawadi, Namita Dubey",
-                details: "Biography, Drama"
-            },
-            {
-                title: "Maa Behen",
-                type: "Movie",
-                banner: "https://images.netflix.com/Maa_Behen_Madhuri_Dixit.jpg",
-                adultRating: "U/A",
-                stars: 3.5,
-                feedback: "A quirky, slightly uneven but wildly entertaining dark comedy where Madhuri Dixit and Triptii Dimri break domestic conventions trying to obscure an accidental home casualty.",
-                ottPlatform: "Netflix",
-                boxOffice: "N/A (Direct to OTT)",
-                casting: "Madhuri Dixit, Triptii Dimri, Ravi Kishan",
-                details: "Comedy, Drama"
-            },
-            {
-                title: "Dhurandhar: The Revenge",
-                type: "Movie",
-                banner: "https://images.jiohotstar.com/Dhurandhar_The_Revenge_Ranveer.jpg",
-                adultRating: "A",
-                stars: 4,
-                feedback: "Following a triumphant theatrical box office run, this espionage thriller delivers explosive choreography and high stakes as Hamza returns for a lethal vendetta.",
-                ottPlatform: "JioHotstar",
-                boxOffice: "₹340+ Crore (Lifetime)",
-                casting: "Ranveer Singh, Hamza Ali Mazari",
-                details: "Action, Thriller"
-            },
-            {
-                title: "Office Romance",
-                type: "Movie",
-                banner: "https://images.netflix.com/Office_Romance_JLo.jpg",
-                adultRating: "U/A",
-                stars: 4,
-                feedback: "A glossy, old-school workplace rom-com. The electric comedic tension between Jennifer Lopez's high-flying CEO and Brett Goldstein's straight-faced lawyer carries the film easily.",
-                ottPlatform: "Netflix",
-                boxOffice: "N/A",
-                casting: "Jennifer Lopez, Brett Goldstein, Tony Hale, Betty Gilpin",
-                details: "Romance, Comedy"
-            }
-        ];
+        // Your integrated TMDb API configurations
+        const API_KEY = 'cfbf2e26010e31d54aefb040ed817236'; 
+        const BASE_URL = 'https://api.themoviedb.org/3';
+        const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 
         const movieListEl = document.getElementById('movieList');
         const searchInput = document.getElementById('searchInput');
         const typeFilter = document.getElementById('typeFilter');
-        const genreFilter = document.getElementById('genreFilter');
-        const ratingFilter = document.getElementById('ratingFilter');
-        const adultRatingFilter = document.getElementById('adultRatingFilter');
+        const sortFilter = document.getElementById('sortFilter');
+        const regionFilter = document.getElementById('regionFilter');
         const noResultsEl = document.getElementById('noResults');
+        const loadingEl = document.getElementById('loading');
 
-        const renderStars = (rating) => {
-            const fullStars = Math.floor(rating);
-            const halfStar = rating % 1 !== 0;
-            const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+        // Helper to convert 10-point API rating to 5-star metric
+        const renderStars = (voteAverage) => {
+            const ratingOutOfFive = voteAverage / 2;
+            const fullStars = Math.floor(ratingOutOfFive);
+            const halfStar = ratingOutOfFive % 1 >= 0.25 && ratingOutOfFive % 1 < 0.75;
+            const extraFullStar = ratingOutOfFive % 1 >= 0.75 ? 1 : 0;
+            
+            const totalFull = fullStars + extraFullStar;
+            const totalHalf = halfStar ? 1 : 0;
+            const emptyStars = 5 - totalFull - totalHalf;
+
             let starsHtml = '';
-            for (let i = 0; i < fullStars; i++) {
-                starsHtml += '<span class="text-amber-400 text-xl">★</span>';
-            }
-            if (halfStar) {
-                starsHtml += '<span class="text-amber-400 text-xl">½</span>';
-            }
-            for (let i = 0; i < emptyStars; i++) {
-                starsHtml += '<span class="text-slate-600 text-xl">★</span>';
-            }
+            for (let i = 0; i < totalFull; i++) starsHtml += '<span class="text-amber-400 text-xl">★</span>';
+            if (totalHalf) starsHtml += '<span class="text-amber-400 text-xl">½</span>';
+            for (let i = 0; i < emptyStars; i++) starsHtml += '<span class="text-slate-600 text-xl">★</span>';
+            
             return starsHtml;
         };
 
-        const renderMovies = () => {
-            const searchQuery = searchInput.value.toLowerCase();
-            const selectedType = typeFilter.value;
-            const selectedGenre = genreFilter.value;
-            const minRating = parseFloat(ratingFilter.value);
-            const selectedAdultRating = adultRatingFilter.value;
-
-            const filteredData = contentDatabase.filter(item => {
-                const titleMatch = item.title.toLowerCase().includes(searchQuery);
-                const castingMatch = item.casting.toLowerCase().includes(searchQuery);
-                const feedbackMatch = item.feedback.toLowerCase().includes(searchQuery);
-                
-                const typeMatch = selectedType ? item.type === selectedType : true;
-                const genreMatch = selectedGenre ? item.details.includes(selectedGenre) : true;
-                const ratingMatch = item.stars >= minRating;
-                
-                // Map custom groupings for adult ratings (e.g., U covers PG, A covers R)
-                let adultRatingMatch = true;
-                if (selectedAdultRating) {
-                    if (selectedAdultRating === "U") {
-                        adultRatingMatch = (item.adultRating === "U" || item.adultRating === "PG");
-                    } else if (selectedAdultRating === "U/A") {
-                        adultRatingMatch = (item.adultRating === "U/A" || item.adultRating === "PG-13");
-                    } else if (selectedAdultRating === "A") {
-                        adultRatingMatch = (item.adultRating === "A" || item.adultRating === "R");
-                    }
-                }
-
-                return (titleMatch || castingMatch || feedbackMatch) && typeMatch && genreMatch && ratingMatch && adultRatingMatch;
-            });
-
+        // Core dynamic function to pull live data from the web API
+        const fetchContent = async () => {
+            loadingEl.classList.remove('hidden');
             movieListEl.innerHTML = '';
-            if (filteredData.length === 0) {
-                noResultsEl.classList.remove('hidden');
+            noResultsEl.classList.add('hidden');
+
+            const query = searchInput.value.trim();
+            const type = typeFilter.value;
+            const sortBy = sortFilter.value;
+            const region = regionFilter.value;
+
+            let url = '';
+
+            // Handle API routes dynamically based on whether user searches or browses
+            if (query) {
+                url = `${BASE_URL}/search/${type === 'all' ? 'multi' : type}?api_key=${API_KEY}&query=${encodeURIComponent(query)}&include_adult=false`;
             } else {
-                noResultsEl.classList.add('hidden');
-                filteredData.forEach(item => {
-                    const cardHtml = `
-                        <div class="movie-card rounded-xl overflow-hidden shadow-lg p-5 flex flex-col justify-between">
-                            <div>
-                                <div class="relative bg-slate-900 h-48 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
-                                    <img src="${item.banner}" alt="${item.title} Banner" onerror="this.src='https://placehold.co/600x400/1e293b/ffffff?text=${encodeURIComponent(item.title)}'" class="w-full h-full object-cover">
-                                    <span class="absolute top-2 right-2 text-xs font-bold tracking-wider uppercase px-2 py-1 rounded bg-indigo-600 text-white shadow-md">
-                                        ${item.type}
-                                    </span>
-                                </div>
-                                
-                                <div class="flex justify-between items-start gap-2 mb-2">
-                                    <h3 class="text-xl font-bold text-white line-clamp-2">${item.title}</h3>
-                                    <span class="text-xs font-semibold bg-slate-700 text-slate-300 rounded px-2 py-1 shrink-0">${item.adultRating}</span>
-                                </div>
-                                
-                                <div class="flex items-center mb-3">
-                                    <div class="flex mr-2">
-                                        ${renderStars(item.stars)}
-                                    </div>
-                                    <span class="text-xs text-slate-400">(${item.stars}/5)</span>
-                                </div>
-                                
-                                <p class="text-slate-400 text-sm italic mb-4 line-clamp-3">"${item.feedback}"</p>
-                            </div>
-                            
-                            <div class="space-y-1.5 text-slate-300 text-xs border-t border-slate-700/60 pt-3">
-                                <p><span class="font-medium text-slate-400">Platform:</span> ${item.ottPlatform}</p>
-                                <p><span class="font-medium text-slate-400">Box Office:</span> ${item.boxOffice}</p>
-                                <p class="truncate"><span class="font-medium text-slate-400">Cast:</span> ${item.casting}</p>
-                                <p><span class="font-medium text-slate-400">Genre:</span> ${item.details}</p>
-                            </div>
-                        </div>
-                    `;
-                    movieListEl.innerHTML += cardHtml;
-                });
+                if (type === 'all') {
+                    url = `${BASE_URL}/trending/all/week?api_key=${API_KEY}`;
+                } else {
+                    url = `${BASE_URL}/discover/${type}?api_key=${API_KEY}&sort_by=${sortBy}&watch_region=${region}&with_original_language=${region === 'IN' ? 'hi|te|ta|ml|bn' : 'en'}`;
+                }
+            }
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                displayResults(data.results || []);
+            } catch (error) {
+                console.error("Error fetching live media asset data:", error);
+                noResultsEl.classList.remove('hidden');
+            } finally {
+                loadingEl.classList.add('hidden');
             }
         };
 
-        // Event listeners
-        searchInput.addEventListener('input', renderMovies);
-        typeFilter.addEventListener('change', renderMovies);
-        genreFilter.addEventListener('change', renderMovies);
-        ratingFilter.addEventListener('change', renderMovies);
-        adultRatingFilter.addEventListener('change', renderMovies);
+        // Render UI elements instantly onto card objects
+        const displayResults = (items) => {
+            if (items.length === 0) {
+                noResultsEl.classList.remove('hidden');
+                return;
+            }
 
-        // Initial setup execution
-        document.addEventListener('DOMContentLoaded', renderMovies);
+            items.forEach(item => {
+                // Map properties since TMDb names things differently for movies vs TV/web series
+                const title = item.title || item.name || 'Untitled Discovery';
+                const type = item.media_type ? (item.media_type === 'tv' ? 'Web Series' : 'Movie') : (typeFilter.value === 'tv' ? 'Web Series' : 'Movie');
+                const banner = item.backdrop_path ? (IMAGE_URL + item.backdrop_path) : (item.poster_path ? (IMAGE_URL + item.poster_path) : '');
+                const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+                const feedback = item.overview ? item.overview : "No synopsis details recorded in index files yet.";
+                const releaseDate = item.release_date || item.first_air_date || 'TBD';
+
+                const cardHtml = `
+                    <div class="movie-card rounded-xl overflow-hidden shadow-lg p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="relative bg-slate-900 h-48 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
+                                <img src="${banner}" alt="${title} Poster" onerror="this.src='https://placehold.co/600x400/1e293b/ffffff?text=${encodeURIComponent(title)}'" class="w-full h-full object-cover">
+                                <span class="absolute top-2 right-2 text-xs font-bold tracking-wider uppercase px-2 py-1 rounded bg-indigo-600 text-white shadow-md">
+                                    ${type}
+                                </span>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <h3 class="text-xl font-bold text-white line-clamp-2">${title}</h3>
+                            </div>
+                            
+                            <div class="flex items-center mb-3">
+                                <div class="flex mr-2">
+                                    ${item.vote_average && item.vote_average > 0 ? renderStars(item.vote_average) : '<span class="text-slate-500 text-xs">Unrated</span>'}
+                                </div>
+                                <span class="text-xs text-slate-400">(${rating}/10 globally)</span>
+                            </div>
+                            
+                            <p class="text-slate-400 text-sm italic mb-4 line-clamp-3">"${feedback}"</p>
+                        </div>
+                        
+                        <div class="space-y-1.5 text-slate-300 text-xs border-t border-slate-700/60 pt-3">
+                            <p><span class="font-medium text-slate-400">Release Date:</span> ${releaseDate}</p>
+                            <p><span class="font-medium text-slate-400">Popularity Score:</span> ${Math.round(item.popularity)}</p>
+                        </div>
+                    </div>
+                `;
+                movieListEl.innerHTML += cardHtml;
+            });
+        };
+
+        // Debounced input search runner setup 
+        let searchTimeout;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(fetchContent, 400); 
+        });
+
+        // Interactive Filter Change Listeners
+        typeFilter.addEventListener('change', fetchContent);
+        sortFilter.addEventListener('change', fetchContent);
+        regionFilter.addEventListener('change', fetchContent);
+
+        // Initial launch setup runtime execution
+        document.addEventListener('DOMContentLoaded', fetchContent);
     </script>
 </body>
 </html>
