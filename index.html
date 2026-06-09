@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MovieLens: Premium Secure Movie Guide</title>
+    <title>MovieLens: Advanced Smart Movie Guide</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -14,8 +14,16 @@
         }
         .movie-card:hover { 
             transform: translateY(-6px); 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             border-color: #4f46e5;
+        }
+        /* Custom scrollbar for suggestions dropdown */
+        .suggestions-box::-webkit-scrollbar {
+            width: 6px;
+        }
+        .suggestions-box::-webkit-scrollbar-thumb {
+            background-color: #475569;
+            border-radius: 3px;
         }
     </style>
 </head>
@@ -24,27 +32,43 @@
     <div class="container mx-auto px-4 py-8 max-w-7xl">
         <header class="text-center mb-10">
             <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 mb-2 tracking-tight">MovieLens</h1>
-            <p class="text-xl text-slate-400">Your secure, live-updating entertainment encyclopedia.</p>
+            <p class="text-xl text-slate-400">Smart prediction search with global international coverage.</p>
         </header>
 
-        <section class="mb-12 bg-slate-800/40 p-6 rounded-2xl border border-slate-700/60 backdrop-blur-md">
+        <section class="mb-12 bg-slate-800/40 p-6 rounded-2xl border border-slate-700/60 backdrop-blur-md relative z-50">
             <div class="relative">
-                <input type="text" id="searchInput" placeholder="Search for titles, plots, or key terms..." class="w-full pl-6 pr-4 py-4 rounded-xl bg-slate-900/80 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700 transition-all">
+                <input type="text" id="searchInput" autocomplete="off" placeholder="Type a movie or series name (auto-correct suggestions will appear)..." class="w-full pl-6 pr-4 py-4 rounded-xl bg-slate-900/80 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700 transition-all">
+                
+                <div id="suggestionsBox" class="suggestions-box absolute left-0 right-0 mt-2 max-h-60 overflow-y-auto bg-slate-950/95 border border-slate-700 rounded-xl shadow-2xl hidden z-50 backdrop-blur-lg">
+                    </div>
             </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-                <select id="typeFilter" class="w-full p-3 rounded-lg bg-slate-900 text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700 cursor-pointer">
+                <select id="typeFilter" class="w-full p-3 rounded-lg bg-slate-900 text-slate-300 focus:outline-none border border-slate-700 cursor-pointer">
                     <option value="all">All Formats</option>
                     <option value="movie">Movies Only</option>
                     <option value="tv">Web Series Only</option>
                 </select>
-                <select id="sortFilter" class="w-full p-3 rounded-lg bg-slate-900 text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700 cursor-pointer">
+
+                <select id="sortFilter" class="w-full p-3 rounded-lg bg-slate-900 text-slate-300 focus:outline-none border border-slate-700 cursor-pointer">
                     <option value="popularity.desc">Popularity (Trending)</option>
                     <option value="vote_average.desc">Rating (Top Rated)</option>
                     <option value="primary_release_date.desc">Release Date (Newest)</option>
                 </select>
-                <select id="regionFilter" class="w-full p-3 rounded-lg bg-slate-900 text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700 cursor-pointer">
-                    <option value="IN">Indian Regional Content</option>
-                    <option value="US">Global Hollywood Content</option>
+
+                <select id="regionFilter" class="w-full p-3 rounded-lg bg-slate-900 text-slate-300 focus:outline-none border border-slate-700 cursor-pointer">
+                    <option value="all">All Regions (Global Mixed)</option>
+                    <option value="IN">India (Bollywood / Regional)</option>
+                    <option value="KR">South Korea (K-Dramas / Thrillers)</option>
+                    <option value="JP">Japan (Anime / Cinema)</option>
+                    <option value="TH">Thailand (Thai Drama/Horror)</option>
+                    <option value="ID">Indonesia</option>
+                    <option value="MY">Malaysia</option>
+                    <option value="DE">Germany</option>
+                    <option value="FR">France</option>
+                    <option value="ES">Spain</option>
+                    <option value="US">United States (Hollywood)</option>
+                    <option value="GB">United Kingdom</option>
                 </select>
             </div>
         </section>
@@ -56,47 +80,40 @@
         
         <section id="movieList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></section>
         
-        <p id="noResults" class="text-center text-slate-500 text-lg mt-12 hidden">No matches found. Try adjusting your parameters.</p>
+        <p id="noResults" class="text-center text-slate-500 text-lg mt-12 hidden">No matches found. Try checking your parameters.</p>
     </div>
 
     <script>
-        // Secure server link configurations
-        //const PROXY_SERVER_URL = 'http://localhost:3000/api/movies';
         const PROXY_SERVER_URL = 'https://movielens-backend-r9v7.onrender.com/api/movies';
         const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 
         const movieListEl = document.getElementById('movieList');
         const searchInput = document.getElementById('searchInput');
+        const suggestionsBox = document.getElementById('suggestionsBox');
         const typeFilter = document.getElementById('typeFilter');
         const sortFilter = document.getElementById('sortFilter');
         const regionFilter = document.getElementById('regionFilter');
         const noResultsEl = document.getElementById('noResults');
         const loadingEl = document.getElementById('loading');
 
-        // Precise partial rendering system for star scores
-        const renderStars = (voteAverage) => {
-            const normalizedRating = voteAverage / 2; 
-            const fullStars = Math.floor(normalizedRating);
-            const hasHalfStar = normalizedRating % 1 >= 0.25 && normalizedRating % 1 < 0.75;
-            const extraFullStar = normalizedRating % 1 >= 0.75 ? 1 : 0;
-            
-            const standardStars = fullStars + extraFullStar;
-            const partialStars = hasHalfStar ? 1 : 0;
-            const blankStars = 5 - standardStars - partialStars;
+        let rollingTitleList = []; // Keeps track of active titles to map spelling fallbacks
 
+        const renderStars = (voteAverage) => {
+            const stars = Math.round(voteAverage / 2);
             let starsHtml = '';
-            for (let i = 0; i < standardStars; i++) starsHtml += '<span class="text-amber-400 text-xl">★</span>';
-            if (partialStars) starsHtml += '<span class="text-amber-400 text-xl">½</span>';
-            for (let i = 0; i < blankStars; i++) starsHtml += '<span class="text-slate-700 text-xl">★</span>';
+            for (let i = 0; i < 5; i++) {
+                starsHtml += i < stars ? '<span class="text-amber-400 text-xl">★</span>' : '<span class="text-slate-700 text-xl">★</span>';
+            }
             return starsHtml;
         };
 
-        const fetchContent = async () => {
+        // Core dynamic content fetching mechanism
+        const fetchContent = async (targetQuery = '') => {
             loadingEl.classList.remove('hidden');
             movieListEl.innerHTML = '';
             noResultsEl.classList.add('hidden');
 
-            const query = searchInput.value.trim();
+            const query = targetQuery || searchInput.value.trim();
             const type = typeFilter.value;
             const sortBy = sortFilter.value;
             const region = regionFilter.value;
@@ -108,14 +125,17 @@
                 params.append('query', query);
                 params.append('include_adult', 'false');
             } else {
-                if (type === 'all') {
+                if (type === 'all' && region === 'all') {
                     params.append('endpoint', 'trending/all/week');
                 } else {
-                    params.append('endpoint', `discover/${type}`);
+                    params.append('endpoint', `discover/${type === 'all' ? 'movie' : type}`);
                     params.append('sort_by', sortBy);
-                    params.append('watch_region', region);
-                    // Dynamically requests local languages based on region selection
-                    params.append('with_original_language', region === 'IN' ? 'hi|te|ta|ml|kn|bn' : 'en');
+                    if (region !== 'all') {
+                        params.append('watch_region', region);
+                        // Map native original languages based on selected region code
+                        const langMap = { IN:'hi|te|ta|ml', KR:'ko', JP:'ja', TH:'th', ID:'id', MY:'ms', DE:'de', FR:'fr', ES:'es', US:'en', GB:'en' };
+                        params.append('with_original_language', langMap[region] || 'en');
+                    }
                 }
             }
 
@@ -123,6 +143,11 @@
                 const response = await fetch(`${PROXY_SERVER_URL}?${params.toString()}`);
                 const data = await response.json();
                 displayResults(data.results || []);
+                
+                // If it's a structural browse view, populate autocomplete index cache silently
+                if (!query) {
+                    rollingTitleList = (data.results || []).map(item => item.title || item.name).filter(Boolean);
+                }
             } catch (error) {
                 console.error("Secure tracking bridge failure:", error);
                 noResultsEl.classList.remove('hidden');
@@ -131,74 +156,116 @@
             }
         };
 
-        const displayResults = (items) => {
-            if (items.length === 0) { 
-                noResultsEl.classList.remove('hidden'); 
-                return; 
+        // Autocomplete Hint Generator Engine
+        const handleSearchInput = async () => {
+            const val = searchInput.value.trim().toLowerCase();
+            if (val.length < 2) {
+                suggestionsBox.classList.add('hidden');
+                return;
             }
+
+            // 1. First, search TMDb API directly for predictive suggestions
+            try {
+                const type = typeFilter.value;
+                const endpoint = `search/${type === 'all' ? 'multi' : type}`;
+                const response = await fetch(`${PROXY_SERVER_URL}?endpoint=${endpoint}&query=${encodeURIComponent(val)}&include_adult=false`);
+                const data = await response.json();
+                
+                const remoteMatches = (data.results || []).slice(0, 6); // Grab top 6 live predictions
+
+                if (remoteMatches.length > 0) {
+                    suggestionsBox.innerHTML = '';
+                    remoteMatches.forEach(item => {
+                        const name = item.title || item.name;
+                        const date = item.release_date || item.first_air_date ? ` (${(item.release_date || item.first_air_date).split('-')[0]})` : '';
+                        if (!name) return;
+
+                        const row = document.createElement('div');
+                        row.className = 'px-5 py-3 text-sm text-slate-300 hover:bg-indigo-600 hover:text-white cursor-pointer border-b border-slate-800/60 last:border-none transition-colors';
+                        row.innerHTML = `<span class="font-semibold">${name}</span><span class="text-xs text-slate-400 ml-1 group-hover:text-slate-200">${date}</span>`;
+                        
+                        row.addEventListener('click', () => {
+                            searchInput.value = name;
+                            suggestionsBox.classList.add('hidden');
+                            fetchContent(name); // Load selected suggestion
+                        });
+                        suggestionsBox.appendChild(row);
+                    });
+                    suggestionsBox.classList.remove('hidden');
+                } else {
+                    suggestionsBox.classList.add('hidden');
+                }
+            } catch (err) {
+                console.error("Autocomplete fetch error:", err);
+            }
+        };
+
+        const displayResults = (items) => {
+            if (items.length === 0) { noResultsEl.classList.remove('hidden'); return; }
             
             items.forEach(item => {
-                // Parse fields gracefully based on whether item is a movie or web series
                 const title = item.title || item.name || 'Untitled Discovery';
                 const type = item.media_type === 'tv' || typeFilter.value === 'tv' ? 'Web Series' : 'Movie';
                 const banner = item.backdrop_path ? (IMAGE_URL + item.backdrop_path) : (item.poster_path ? (IMAGE_URL + item.poster_path) : '');
                 const rating = item.vote_average ? item.vote_average.toFixed(1) : '0.0';
-                const description = item.overview || "No plot summary available in remote indexes yet.";
+                const description = item.overview || "No plot summary available.";
                 const trackingScore = item.popularity ? Math.round(item.popularity) : 'N/A';
                 
-                // Formats dates from YYYY-MM-DD into a localized style
                 const rawDate = item.release_date || item.first_air_date;
                 const formattedDate = rawDate ? new Date(rawDate).toLocaleDateString('en-US', {
-                    year: 'numeric', month: 'short', day: 'numeric'
+                    year: 'numeric', month: 'short'
                 }) : 'TBD';
 
                 movieListEl.innerHTML += `
                     <div class="movie-card rounded-2xl overflow-hidden flex flex-col justify-between">
                         <div>
-                            <div class="relative bg-slate-950 h-52 overflow-hidden flex items-center justify-center group">
-                                <img src="${banner}" alt="${title}" onerror="this.src='https://placehold.co/600x400/0f172a/ffffff?text=${encodeURIComponent(title)}'" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-                                <span class="absolute top-3 right-3 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md bg-indigo-600/90 text-white backdrop-blur-sm shadow-lg border border-indigo-400/20">
+                            <div class="relative bg-slate-950 h-52 overflow-hidden flex items-center justify-center">
+                                <img src="${banner}" alt="${title}" onerror="this.src='https://placehold.co/600x400/0f172a/ffffff?text=${encodeURIComponent(title)}'" class="w-full h-full object-cover">
+                                <span class="absolute top-3 right-3 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md bg-indigo-600/90 text-white backdrop-blur-sm shadow-lg">
                                     ${type}
                                 </span>
                             </div>
-                            
                             <div class="p-5 pb-0">
-                                <h3 class="text-xl font-bold text-white mb-1.5 line-clamp-1 group-hover:text-indigo-400 transition-colors" title="${title}">${title}</h3>
-                                
+                                <h3 class="text-xl font-bold text-white mb-1.5 line-clamp-1" title="${title}">${title}</h3>
                                 <div class="flex items-center mb-3 gap-2">
                                     <div class="flex">${renderStars(item.vote_average || 0)}</div>
-                                    <span class="text-xs font-semibold text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">
-                                        ${rating > 0 ? `${rating}/10` : 'Unrated'}
-                                    </span>
+                                    <span class="text-xs font-semibold text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">(${rating}/10)</span>
                                 </div>
-                                
                                 <p class="text-slate-400 text-sm leading-relaxed mb-4 line-clamp-3">"${description}"</p>
                             </div>
                         </div>
-                        
                         <div class="p-5 pt-0">
                             <div class="grid grid-cols-2 gap-2 text-[11px] border-t border-slate-700/50 pt-3.5 text-slate-400 font-medium">
                                 <div><span class="text-slate-500 block uppercase tracking-wider text-[9px]">Released</span> ${formattedDate}</div>
-                                <div><span class="text-slate-500 block uppercase tracking-wider text-[9px]">Trend Weight</span> Score: ${trackingScore}</div>
+                                <div><span class="text-slate-500 block uppercase tracking-wider text-[9px]">Trend Score</span> ${trackingScore}</div>
                             </div>
                         </div>
                     </div>`;
             });
         };
 
-        // Input buffering to minimize redundant request cycles
-        let searchTimeout;
+        // Debounce setup for keyboard typing inputs
+        let inputTimeout;
         searchInput.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(fetchContent, 400); 
+            clearTimeout(inputTimeout);
+            inputTimeout = setTimeout(() => {
+                handleSearchInput();
+                fetchContent();
+            }, 350);
         });
 
-        typeFilter.addEventListener('change', fetchContent);
-        sortFilter.addEventListener('change', fetchContent);
-        regionFilter.addEventListener('change', fetchContent);
+        // Close suggestion box if clicked outside
+        document.addEventListener('click', (e) => {
+            if (e.target !== searchInput && e.target !== suggestionsBox) {
+                suggestionsBox.classList.add('hidden');
+            }
+        });
+
+        typeFilter.addEventListener('change', () => fetchContent());
+        sortFilter.addEventListener('change', () => fetchContent());
+        regionFilter.addEventListener('change', () => fetchContent());
         
-        // Bootstraps execution on interface load
-        document.addEventListener('DOMContentLoaded', fetchContent);
+        document.addEventListener('DOMContentLoaded', () => fetchContent());
     </script>
 </body>
 </html>
