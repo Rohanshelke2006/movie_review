@@ -3,69 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MovieLens: Your Automated Movie & Web Series Guide</title>
+    <title>MovieLens: Premium Secure Movie Guide</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .movie-card {
             background-color: #1e293b;
             border: 1px solid #334155;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .movie-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+        .movie-card:hover { 
+            transform: translateY(-6px); 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+            border-color: #4f46e5;
         }
     </style>
 </head>
-<body class="bg-gray-900 text-slate-200">
+<body class="bg-gray-900 text-slate-200 antialiased">
 
     <div class="container mx-auto px-4 py-8 max-w-7xl">
-
         <header class="text-center mb-10">
-            <h1 class="text-5xl font-extrabold text-white leading-tight mb-2">MovieLens</h1>
-            <p class="text-xl text-slate-400">Live, automatically updating guide to the world's trending films & TV shows.</p>
+            <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 mb-2 tracking-tight">MovieLens</h1>
+            <p class="text-xl text-slate-400">Your secure, live-updating entertainment encyclopedia.</p>
         </header>
 
-        <section class="mb-12 bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
-            <div class="search-box relative">
-                <input type="text" id="searchInput" placeholder="Search for any movie or web series globally..." class="w-full pl-6 pr-4 py-4 rounded-lg bg-slate-800 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700">
+        <section class="mb-12 bg-slate-800/40 p-6 rounded-2xl border border-slate-700/60 backdrop-blur-md">
+            <div class="relative">
+                <input type="text" id="searchInput" placeholder="Search for titles, plots, or key terms..." class="w-full pl-6 pr-4 py-4 rounded-xl bg-slate-900/80 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700 transition-all">
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-                <select id="typeFilter" class="w-full p-3 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700">
-                    <option value="all">All Formats (Trending)</option>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+                <select id="typeFilter" class="w-full p-3 rounded-lg bg-slate-900 text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700 cursor-pointer">
+                    <option value="all">All Formats</option>
                     <option value="movie">Movies Only</option>
                     <option value="tv">Web Series Only</option>
                 </select>
-
-                <select id="sortFilter" class="w-full p-3 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700">
-                    <option value="popularity.desc">Popularity (High to Low)</option>
+                <select id="sortFilter" class="w-full p-3 rounded-lg bg-slate-900 text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700 cursor-pointer">
+                    <option value="popularity.desc">Popularity (Trending)</option>
                     <option value="vote_average.desc">Rating (Top Rated)</option>
-                    <option value="primary_release_date.desc">Release Date (Newest First)</option>
+                    <option value="primary_release_date.desc">Release Date (Newest)</option>
                 </select>
-
-                <select id="regionFilter" class="w-full p-3 rounded-lg bg-slate-800 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700">
-                    <option value="IN">Indian Releases</option>
-                    <option value="US">Hollywood / Global Releases</option>
+                <select id="regionFilter" class="w-full p-3 rounded-lg bg-slate-900 text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-700 cursor-pointer">
+                    <option value="IN">Indian Regional Content</option>
+                    <option value="US">Global Hollywood Content</option>
                 </select>
             </div>
         </section>
 
-        <div id="loading" class="text-center text-indigo-400 text-xl font-semibold my-12 hidden">
-            Fetching latest updates from database...
+        <div id="loading" class="text-center my-12 hidden">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-500 border-t-transparent mb-2"></div>
+            <p class="text-indigo-400 font-medium">Securing remote data link...</p>
         </div>
-
-        <section id="movieList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            </section>
         
-        <p id="noResults" class="text-center text-slate-400 text-lg mt-12 hidden">No titles found. Try adjusting your search query.</p>
-
+        <section id="movieList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></section>
+        
+        <p id="noResults" class="text-center text-slate-500 text-lg mt-12 hidden">No matches found. Try adjusting your parameters.</p>
     </div>
 
     <script>
-        // Your integrated TMDb API configurations
-        const API_KEY = 'cfbf2e26010e31d54aefb040ed817236'; 
-        const BASE_URL = 'https://api.themoviedb.org/3';
+        // Secure server link configurations
+        const PROXY_SERVER_URL = 'http://localhost:3000/api/movies';
         const IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
 
         const movieListEl = document.getElementById('movieList');
@@ -76,26 +72,24 @@
         const noResultsEl = document.getElementById('noResults');
         const loadingEl = document.getElementById('loading');
 
-        // Helper to convert 10-point API rating to 5-star metric
+        // Precise partial rendering system for star scores
         const renderStars = (voteAverage) => {
-            const ratingOutOfFive = voteAverage / 2;
-            const fullStars = Math.floor(ratingOutOfFive);
-            const halfStar = ratingOutOfFive % 1 >= 0.25 && ratingOutOfFive % 1 < 0.75;
-            const extraFullStar = ratingOutOfFive % 1 >= 0.75 ? 1 : 0;
+            const normalizedRating = voteAverage / 2; 
+            const fullStars = Math.floor(normalizedRating);
+            const hasHalfStar = normalizedRating % 1 >= 0.25 && normalizedRating % 1 < 0.75;
+            const extraFullStar = normalizedRating % 1 >= 0.75 ? 1 : 0;
             
-            const totalFull = fullStars + extraFullStar;
-            const totalHalf = halfStar ? 1 : 0;
-            const emptyStars = 5 - totalFull - totalHalf;
+            const standardStars = fullStars + extraFullStar;
+            const partialStars = hasHalfStar ? 1 : 0;
+            const blankStars = 5 - standardStars - partialStars;
 
             let starsHtml = '';
-            for (let i = 0; i < totalFull; i++) starsHtml += '<span class="text-amber-400 text-xl">★</span>';
-            if (totalHalf) starsHtml += '<span class="text-amber-400 text-xl">½</span>';
-            for (let i = 0; i < emptyStars; i++) starsHtml += '<span class="text-slate-600 text-xl">★</span>';
-            
+            for (let i = 0; i < standardStars; i++) starsHtml += '<span class="text-amber-400 text-xl">★</span>';
+            if (partialStars) starsHtml += '<span class="text-amber-400 text-xl">½</span>';
+            for (let i = 0; i < blankStars; i++) starsHtml += '<span class="text-slate-700 text-xl">★</span>';
             return starsHtml;
         };
 
-        // Core dynamic function to pull live data from the web API
         const fetchContent = async () => {
             loadingEl.classList.remove('hidden');
             movieListEl.innerHTML = '';
@@ -106,94 +100,103 @@
             const sortBy = sortFilter.value;
             const region = regionFilter.value;
 
-            let url = '';
+            let params = new URLSearchParams();
 
-            // Handle API routes dynamically based on whether user searches or browses
             if (query) {
-                url = `${BASE_URL}/search/${type === 'all' ? 'multi' : type}?api_key=${API_KEY}&query=${encodeURIComponent(query)}&include_adult=false`;
+                params.append('endpoint', `search/${type === 'all' ? 'multi' : type}`);
+                params.append('query', query);
+                params.append('include_adult', 'false');
             } else {
                 if (type === 'all') {
-                    url = `${BASE_URL}/trending/all/week?api_key=${API_KEY}`;
+                    params.append('endpoint', 'trending/all/week');
                 } else {
-                    url = `${BASE_URL}/discover/${type}?api_key=${API_KEY}&sort_by=${sortBy}&watch_region=${region}&with_original_language=${region === 'IN' ? 'hi|te|ta|ml|bn' : 'en'}`;
+                    params.append('endpoint', `discover/${type}`);
+                    params.append('sort_by', sortBy);
+                    params.append('watch_region', region);
+                    // Dynamically requests local languages based on region selection
+                    params.append('with_original_language', region === 'IN' ? 'hi|te|ta|ml|kn|bn' : 'en');
                 }
             }
 
             try {
-                const response = await fetch(url);
+                const response = await fetch(`${PROXY_SERVER_URL}?${params.toString()}`);
                 const data = await response.json();
                 displayResults(data.results || []);
             } catch (error) {
-                console.error("Error fetching live media asset data:", error);
+                console.error("Secure tracking bridge failure:", error);
                 noResultsEl.classList.remove('hidden');
             } finally {
                 loadingEl.classList.add('hidden');
             }
         };
 
-        // Render UI elements instantly onto card objects
         const displayResults = (items) => {
-            if (items.length === 0) {
-                noResultsEl.classList.remove('hidden');
-                return;
+            if (items.length === 0) { 
+                noResultsEl.classList.remove('hidden'); 
+                return; 
             }
-
+            
             items.forEach(item => {
-                // Map properties since TMDb names things differently for movies vs TV/web series
+                // Parse fields gracefully based on whether item is a movie or web series
                 const title = item.title || item.name || 'Untitled Discovery';
-                const type = item.media_type ? (item.media_type === 'tv' ? 'Web Series' : 'Movie') : (typeFilter.value === 'tv' ? 'Web Series' : 'Movie');
+                const type = item.media_type === 'tv' || typeFilter.value === 'tv' ? 'Web Series' : 'Movie';
                 const banner = item.backdrop_path ? (IMAGE_URL + item.backdrop_path) : (item.poster_path ? (IMAGE_URL + item.poster_path) : '');
-                const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
-                const feedback = item.overview ? item.overview : "No synopsis details recorded in index files yet.";
-                const releaseDate = item.release_date || item.first_air_date || 'TBD';
+                const rating = item.vote_average ? item.vote_average.toFixed(1) : '0.0';
+                const description = item.overview || "No plot summary available in remote indexes yet.";
+                const trackingScore = item.popularity ? Math.round(item.popularity) : 'N/A';
+                
+                // Formats dates from YYYY-MM-DD into a localized style
+                const rawDate = item.release_date || item.first_air_date;
+                const formattedDate = rawDate ? new Date(rawDate).toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric'
+                }) : 'TBD';
 
-                const cardHtml = `
-                    <div class="movie-card rounded-xl overflow-hidden shadow-lg p-5 flex flex-col justify-between">
+                movieListEl.innerHTML += `
+                    <div class="movie-card rounded-2xl overflow-hidden flex flex-col justify-between">
                         <div>
-                            <div class="relative bg-slate-900 h-48 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
-                                <img src="${banner}" alt="${title} Poster" onerror="this.src='https://placehold.co/600x400/1e293b/ffffff?text=${encodeURIComponent(title)}'" class="w-full h-full object-cover">
-                                <span class="absolute top-2 right-2 text-xs font-bold tracking-wider uppercase px-2 py-1 rounded bg-indigo-600 text-white shadow-md">
+                            <div class="relative bg-slate-950 h-52 overflow-hidden flex items-center justify-center group">
+                                <img src="${banner}" alt="${title}" onerror="this.src='https://placehold.co/600x400/0f172a/ffffff?text=${encodeURIComponent(title)}'" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                <span class="absolute top-3 right-3 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md bg-indigo-600/90 text-white backdrop-blur-sm shadow-lg border border-indigo-400/20">
                                     ${type}
                                 </span>
                             </div>
                             
-                            <div class="mb-2">
-                                <h3 class="text-xl font-bold text-white line-clamp-2">${title}</h3>
-                            </div>
-                            
-                            <div class="flex items-center mb-3">
-                                <div class="flex mr-2">
-                                    ${item.vote_average && item.vote_average > 0 ? renderStars(item.vote_average) : '<span class="text-slate-500 text-xs">Unrated</span>'}
+                            <div class="p-5 pb-0">
+                                <h3 class="text-xl font-bold text-white mb-1.5 line-clamp-1 group-hover:text-indigo-400 transition-colors" title="${title}">${title}</h3>
+                                
+                                <div class="flex items-center mb-3 gap-2">
+                                    <div class="flex">${renderStars(item.vote_average || 0)}</div>
+                                    <span class="text-xs font-semibold text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">
+                                        ${rating > 0 ? `${rating}/10` : 'Unrated'}
+                                    </span>
                                 </div>
-                                <span class="text-xs text-slate-400">(${rating}/10 globally)</span>
+                                
+                                <p class="text-slate-400 text-sm leading-relaxed mb-4 line-clamp-3">"${description}"</p>
                             </div>
-                            
-                            <p class="text-slate-400 text-sm italic mb-4 line-clamp-3">"${feedback}"</p>
                         </div>
                         
-                        <div class="space-y-1.5 text-slate-300 text-xs border-t border-slate-700/60 pt-3">
-                            <p><span class="font-medium text-slate-400">Release Date:</span> ${releaseDate}</p>
-                            <p><span class="font-medium text-slate-400">Popularity Score:</span> ${Math.round(item.popularity)}</p>
+                        <div class="p-5 pt-0">
+                            <div class="grid grid-cols-2 gap-2 text-[11px] border-t border-slate-700/50 pt-3.5 text-slate-400 font-medium">
+                                <div><span class="text-slate-500 block uppercase tracking-wider text-[9px]">Released</span> ${formattedDate}</div>
+                                <div><span class="text-slate-500 block uppercase tracking-wider text-[9px]">Trend Weight</span> Score: ${trackingScore}</div>
+                            </div>
                         </div>
-                    </div>
-                `;
-                movieListEl.innerHTML += cardHtml;
+                    </div>`;
             });
         };
 
-        // Debounced input search runner setup 
+        // Input buffering to minimize redundant request cycles
         let searchTimeout;
         searchInput.addEventListener('input', () => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(fetchContent, 400); 
         });
 
-        // Interactive Filter Change Listeners
         typeFilter.addEventListener('change', fetchContent);
         sortFilter.addEventListener('change', fetchContent);
         regionFilter.addEventListener('change', fetchContent);
-
-        // Initial launch setup runtime execution
+        
+        // Bootstraps execution on interface load
         document.addEventListener('DOMContentLoaded', fetchContent);
     </script>
 </body>
