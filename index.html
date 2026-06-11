@@ -30,7 +30,6 @@
             border-radius: 3px;
         }
         
-        /* Netflix-style banner image style tweaks */
         .bg-banner-item {
             transition: opacity 0.8s ease-in-out;
         }
@@ -38,7 +37,7 @@
 </head>
 <body class="bg-gray-950 text-slate-200 antialiased min-h-screen relative overflow-x-hidden">
 
-    <div id="dynamicHeroGrid" class="absolute top-0 left-0 w-full h-[620px] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 p-2 opacity-25 pointer-events-none z-0 overflow-hidden select-none">
+    <div id="dynamicHeroGrid" class="absolute top-0 left-0 w-full h-[620px] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 p-2 opacity-45 pointer-events-none z-0 overflow-hidden select-none">
         <div class="bg-slate-900/60 h-48 rounded-lg overflow-hidden"><img class="bg-banner-item w-full h-full object-cover" src="" alt=""></div>
         <div class="bg-slate-900/60 h-48 rounded-lg overflow-hidden"><img class="bg-banner-item w-full h-full object-cover" src="" alt=""></div>
         <div class="bg-slate-900/60 h-48 rounded-lg overflow-hidden"><img class="bg-banner-item w-full h-full object-cover" src="" alt=""></div>
@@ -53,23 +52,23 @@
         <div class="bg-slate-900/60 h-48 rounded-lg overflow-hidden"><img class="bg-banner-item w-full h-full object-cover" src="" alt=""></div>
     </div>
 
-    <div class="absolute top-0 left-0 w-full h-[650px] bg-gradient-to-b from-black via-gray-950/85 to-gray-950 pointer-events-none z-10"></div>
+    <div class="absolute top-0 left-0 w-full h-[650px] bg-gradient-to-b from-black/90 via-gray-950/60 to-gray-950 pointer-events-none z-10"></div>
 
     <div class="container mx-auto px-4 py-8 max-w-7xl relative z-20">
         <header class="text-center mb-12 pt-6">
-            <div class="flex items-center justify-center gap-4 mb-3 drop-shadow-[0_10px_15px_rgba(0,0,0,0.9)]">
-                <img src="logo.png" alt="MovieLens Logo" class="w-16 h-16 object-contain rounded-xl drop-shadow-[0_4px_12px_rgba(234,179,8,0.4)]">
+            <div class="flex items-center justify-center gap-4 mb-3 drop-shadow-[0_4px_12px_rgba(0,0,0,1)]">
+                <img src="logo.jpg" alt="MovieLens Logo" class="w-16 h-16 object-contain rounded-xl drop-shadow-[0_4px_12px_rgba(234,179,8,0.4)]">
                 
                 <h1 class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-blue-500 to-purple-600 tracking-tight">
                     MovieLens
                 </h1>
             </div>
-            <p class="text-xl text-slate-400 font-medium drop-shadow-md">Smart prediction search with global international coverage.</p>
+            <p class="text-xl text-slate-300 font-medium drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">Smart prediction search with global international coverage.</p>
         </header>
 
-        <section class="mb-12 bg-slate-900/60 p-6 rounded-2xl border border-slate-800/80 backdrop-blur-xl relative z-50 shadow-2xl">
+        <section class="mb-12 bg-slate-900/75 p-6 rounded-2xl border border-slate-800/80 backdrop-blur-xl relative z-50 shadow-2xl">
             <div class="relative">
-                <input type="text" id="searchInput" autocomplete="off" placeholder="Type a movie or series name (auto-correct suggestions will appear)..." class="w-full pl-6 pr-4 py-4 rounded-xl bg-slate-950/80 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-800 transition-all shadow-inner">
+                <input type="text" id="searchInput" autocomplete="off" placeholder="Type a movie or series name (auto-correct suggestions will appear)..." class="w-full pl-6 pr-4 py-4 rounded-xl bg-slate-950/85 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-slate-800 transition-all shadow-inner">
                 
                 <div id="suggestionsBox" class="suggestions-box absolute left-0 right-0 mt-2 max-h-60 overflow-y-auto bg-slate-950/95 border border-slate-800 rounded-xl shadow-2xl hidden z-50 backdrop-blur-lg"></div>
             </div>
@@ -138,13 +137,11 @@
             return starsHtml;
         };
 
-        // Inject blockbusters straight into the ambient hero backdrop layer
         const updateHeroBackgroundBanners = (results) => {
             const imageElements = document.querySelectorAll('.bg-banner-item');
             if (!results || results.length === 0) return;
             
             imageElements.forEach((img, index) => {
-                // Cycle through existing items sequentially to populate available slots
                 const dataItem = results[index % results.length];
                 if (dataItem) {
                     const backdropPath = dataItem.backdrop_path || dataItem.poster_path;
@@ -193,7 +190,6 @@
                 const itemsList = data.results || [];
                 displayResults(itemsList);
                 
-                // Update background grid layout using real live data entries
                 if (itemsList.length > 0) {
                     updateHeroBackgroundBanners(itemsList);
                 }
