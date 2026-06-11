@@ -136,60 +136,94 @@
             return starsHtml;
         };
 
-        // Fallback placeholder logic for rendering watch engine platforms inside card structures
+        // Specific Text-Based OTT Platform Tracker Logic
         const generateAvailabilityStatus = (item) => {
             const releaseDateRaw = item.release_date || item.first_air_date;
-            const currentSelectedRegion = regionFilter.value !== 'all' ? regionFilter.value : 'US';
+            const currentSelectedRegion = regionFilter.value !== 'all' ? regionFilter.value : 'IN';
             
-            // 1. If backend supplies watch/providers data object, use it directly
+            // 1. Check if backend contains parsed watch providers data
             if (item.watch_providers && item.watch_providers.results && item.watch_providers.results[currentSelectedRegion]) {
                 const regionalData = item.watch_providers.results[currentSelectedRegion];
-                const flatrateList = regionalData.flatrate || regionalData.buy || [];
                 
-                if (flatrateList.length > 0) {
-                    let providersHtml = '<div class="flex items-center gap-1.5 overflow-x-auto"><span class="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider block mr-1">Watch On:</span>';
-                    flatrateList.slice(0, 3).forEach(prov => {
-                        providersHtml += `
-                            <img src="${IMAGE_URL + prov.logo_path}" alt="${prov.provider_name}" title="${prov.provider_name}" class="w-6 h-6 rounded-md object-cover border border-slate-700" onerror="this.style.display='none'">
-                        `;
+                // Combine flatrate (streaming subscription) and buy/rent options to catch platforms
+                const directStreaming = regionalData.flatrate || [];
+                const transactionalStreaming = regionalData.buy || regionalData.rent || [];
+                const allProviders = [...directStreaming, ...transactionalStreaming];
+                
+                if (allProviders.length > 0) {
+                    // Extract unique platforms by their name to avoid duplicates
+                    const uniqueProviders = [];
+                    const seenNames = new Set();
+                    
+                    allProviders.forEach(prov => {
+                        let cleanName = prov.provider_name;
+                        // Map standard international names to match clean definitions
+                        if (cleanName.includes("Hotstar")) cleanName = "JioHotstar";
+                        if (cleanName.includes("Amazon Prime")) cleanName = "Amazon Prime Video";
+                        if (cleanName.includes("MX Player")) cleanName = "MX Player";
+                        
+                        if (!seenNames.has(cleanName)) {
+                            seenNames.add(cleanName);
+                            uniqueProviders.push({ name: cleanName, logo: prov.logo_path });
+                        }
                     });
-                    providersHtml += '</div>';
+
+                    // Take the top 2 platforms to display neatly in text format
+                    const platformListText = uniqueProviders.slice(0, 2).map(p => p.name).join(' & ');
+                    
+                    let providersHtml = `
+                        <div class="flex items-center gap-2.5 w-full">
+                            <div class="flex gap-1 shrink-0">`;
+                    
+                    uniqueProviders.slice(0, 2).forEach(prov => {
+                        providersHtml += `<img src="${IMAGE_URL + prov.logo}" alt="${prov.name}" class="w-6 h-6 rounded-md object-cover border border-slate-700">`;
+                    });
+
+                    providersHtml += `
+                            </div>
+                            <div class="flex flex-col min-w-0">
+                                <span class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Streaming Now</span>
+                                <span class="text-[12px] font-bold text-emerald-400 truncate">Available on ${platformListText}</span>
+                            </div>
+                        </div>`;
                     return providersHtml;
                 }
             }
 
-            // 2. Predictive chronological calculation if provider metadata array is absent
+            // 2. Schedule Fallback Predictive Engine
             if (!releaseDateRaw) {
-                return `<div class="text-[11px] text-amber-400 font-semibold uppercase tracking-wider flex items-center gap-1">⏱ TBD / Preview Script</div>`;
+                return `
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider">Status Unknown</span>
+                        <span class="text-[12px] text-amber-400 font-bold">Check Local Theater Schedules</span>
+                    </div>`;
             }
 
             const releaseDate = new Date(releaseDateRaw);
-            const currentDate = new Date(); // Represents current execution timeline (2026)
-            
-            // Calculate millisecond gap variations
+            const currentDate = new Date(); // Timeline set to June 2026
             const timeDifference = currentDate - releaseDate;
             const daysSinceRelease = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 
             if (releaseDate > currentDate) {
-                // Scenario A: Movie hasn't launched anywhere yet
+                // Future Release
                 return `
-                    <div class="flex flex-col gap-0.5">
-                        <span class="text-[11px] text-purple-400 font-bold uppercase tracking-wider">🔮 Upcoming Release</span>
-                        <span class="text-[10px] text-slate-400">Recommended watch strategy: Theater or premium digital pre-order.</span>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider">Pre-Release Status</span>
+                        <span class="text-[12px] text-purple-400 font-bold">Upcoming Release (Recommended OTT Platform pending)</span>
                     </div>`;
             } else if (daysSinceRelease <= 90) {
-                // Scenario B: Released within last 3 months, likely theater-exclusive
+                // Freshly dropped in theaters
                 return `
-                    <div class="flex flex-col gap-0.5">
-                        <span class="text-[11px] text-amber-500 font-bold uppercase tracking-wider">🎬 Now in Theaters Only</span>
-                        <span class="text-[10px] text-slate-400">Not yet deployed on regional OTT platforms. Watch on big screen!</span>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider">Theater Exclusive</span>
+                        <span class="text-[12px] text-amber-500 font-bold">Available in Theaters Only</span>
                     </div>`;
             } else {
-                // Scenario C: Older window, likely shifted to localized standard licenses
+                // Older title without structural tags
                 return `
-                    <div class="flex flex-col gap-0.5">
-                        <span class="text-[11px] text-blue-400 font-bold uppercase tracking-wider">📡 Digital Streaming Target</span>
-                        <span class="text-[10px] text-slate-400">Check localized platforms like Netflix/Prime or rental shops.</span>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-slate-400 uppercase tracking-wider">Digital Catalog</span>
+                        <span class="text-[12px] text-blue-400 font-bold">Recommended Search on Netflix or Prime</span>
                     </div>`;
             }
         };
@@ -320,7 +354,6 @@
                     year: 'numeric', month: 'short'
                 }) : 'TBD';
 
-                // Evaluate status indicators to map custom badge
                 const platformTrackingComponent = generateAvailabilityStatus(item);
 
                 movieListEl.innerHTML += `
@@ -340,7 +373,7 @@
                                 </div>
                                 <p class="text-slate-400 text-sm leading-relaxed mb-3 line-clamp-3">"${description}"</p>
                                 
-                                <div class="bg-slate-950/50 rounded-xl p-3 mb-4 border border-slate-800/40 min-h-[54px] flex items-center">
+                                <div class="bg-slate-950/60 rounded-xl p-3 mb-4 border border-slate-800/60 min-h-[58px] flex items-center shadow-inner">
                                     ${platformTrackingComponent}
                                 </div>
                             </div>
